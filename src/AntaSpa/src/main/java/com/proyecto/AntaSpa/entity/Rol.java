@@ -1,8 +1,7 @@
 package com.proyecto.AntaSpa.entity;
 
-import jakarta.persistence.*;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Size;
+import jakarta.persistence.;
+import jakarta.validation.constraints.;
 import lombok.*;
 
 @Entity
@@ -24,7 +23,6 @@ public class Rol {
 
     @NotBlank(message = "El nombre del rol es obligatorio")
 
-    @Size(max = 50, message = "El nombre no debe exceder 50 caracteres")
     @Column(name = "nombre", nullable = false, unique = true, length = 50)
     private String nombre;
 

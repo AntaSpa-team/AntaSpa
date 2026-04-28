@@ -5,7 +5,7 @@ import jakarta.validation.constraints.;
 import lombok.*;
 
 @Entity
-@Table(name = "rol")
+@Table(name = "roles")
 
 @Getter
 @Setter
@@ -18,12 +18,12 @@ public class Rol {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
 
-    @Column(name = "id_rol")
+    @Column(name = "id")
     private Long idRol;
 
-    @NotBlank(message = "El nombre del rol es obligatorio")
+    @NotBlank(message = "El nombre del rol es importante")
 
-    @Column(name = "nombre", nullable = false, unique = true, length = 50)
-    private String nombre;
+    @Column(name = "nombre_rol", nullable = false, unique = true, length = 50)
+    private String nombreRol;
 
 }

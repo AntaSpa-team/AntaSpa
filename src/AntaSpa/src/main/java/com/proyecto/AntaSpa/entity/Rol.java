@@ -5,7 +5,7 @@ import jakarta.validation.constraints.;
 import lombok.*;
 
 @Entity
-@Table(name = "rol")
+@Table(name = "tabla_master")
 
 @Getter
 @Setter

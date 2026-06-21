@@ -27,28 +27,11 @@ jobs:
           echo "EOF" >> $GITHUB_OUTPUT
 
 
-      - name: Enviar registro completo a Discord
+      - name: Enviar a Discord (FIX)
         run: |
-          MESSAGE="📌 REGISTRO DE ACTIVIDAD ANTA SPA
-
-👤 Responsable: ${{ github.actor }}
-📅 Fecha: $(date -u '+%Y-%m-%d %H:%M:%S UTC')
-📌 Evento: ${{ github.event_name }}
-🌿 Rama: ${{ github.ref_name }}
-📦 Repositorio: ${{ github.repository }}
-
-📝 Mensaje:
-${{ github.event.head_commit.message }}
-
-📄 Archivos afectados:
-${{ steps.changes.outputs.files }}
-
-🔗 Link commit/acción:
-${{ github.event.head_commit.url }}
-
-📊 Tipo de cambio: seguimiento automático de proyecto UX/UI Figma"
+          MESSAGE="📌 REGISTRO DE ACTIVIDAD ANTA SPA\n\n👤 Responsable: ${{ github.actor }}\n📅 Fecha: $(date -u)\n📌 Evento: ${{ github.event_name }}\n🌿 Rama: ${{ github.ref_name }}\n📦 Repo: ${{ github.repository }}\n\n📝 Mensaje:\n${{ github.event.head_commit.message }}\n\n📄 Archivos:\n${{ steps.changes.outputs.files }}\n\n🔗 Link:\n${{ github.event.head_commit.url }}"
 
           curl -H "Content-Type: application/json" \
           -X POST \
-          -d "{\"content\":\"$MESSAGE\"}" \
+          -d "{\"content\":\"$(echo "$MESSAGE" | sed 's/"/\\"/g')\"}" \
           ${{ secrets.DISCORD_WEBHOOK }}

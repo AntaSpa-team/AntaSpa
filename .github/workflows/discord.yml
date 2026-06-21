@@ -41,7 +41,8 @@ jobs:
           if [ "$EVENT" = "push" ]; then
             DETAIL=$(git log -1 --pretty=%B | head -c 300)
 
-            MESSAGE="📊 ANTASPA • ACTIVITY SYSTEM
+            cat <<EOF > message.txt
+📊 ANTASPA • ACTIVITY SYSTEM
 
 ━━━━━━━━━━━━━━━━━━━━━━
 👤 Usuario: ${{ github.actor }}
@@ -58,16 +59,19 @@ $DETAIL
 ${{ steps.changes.outputs.files }}
 
 ━━━━━━━━━━━━━━━━━━━━━━
-🔗 Link: https://github.com/${{ github.repository }}/commit/${{ github.sha }}"
+🔗 Link: https://github.com/${{ github.repository }}/commit/${{ github.sha }}
+EOF
 
           elif [ "$EVENT" = "pull_request" ]; then
-            MESSAGE="📊 ANTASPA • ACTIVITY SYSTEM
+
+            cat <<EOF > message.txt
+📊 ANTASPA • ACTIVITY SYSTEM
 
 ━━━━━━━━━━━━━━━━━━━━━━
 👤 Usuario: ${{ github.actor }}
 📅 Fecha: $DATE
 📦 Repo: ${{ github.repository }}
-🌿 Rama: PR ${{ github.head_ref }} → ${{ github.base_ref }}
+🌿 Rama: ${{ github.head_ref }} → ${{ github.base_ref }}
 ━━━━━━━━━━━━━━━━━━━━━━
 🔀 EVENTO: PULL REQUEST
 
@@ -78,10 +82,13 @@ ${{ github.event.pull_request.title }}
 ${{ github.event.pull_request.body }}
 
 ━━━━━━━━━━━━━━━━━━━━━━
-🔗 PR: ${{ github.event.pull_request.html_url }}"
+🔗 PR: ${{ github.event.pull_request.html_url }}
+EOF
 
           else
-            MESSAGE="📊 ANTASPA • ACTIVITY SYSTEM
+
+            cat <<EOF > message.txt
+📊 ANTASPA • ACTIVITY SYSTEM
 
 ━━━━━━━━━━━━━━━━━━━━━━
 👤 Usuario: ${{ github.actor }}
@@ -91,11 +98,13 @@ ${{ github.event.pull_request.body }}
 ━━━━━━━━━━━━━━━━━━━━━━
 📌 EVENTO: $EVENT
 
-🧠 Actividad registrada sin commit directo"
+🧠 Actividad registrada sin commit directo
+EOF
+
           fi
 
           echo "message<<EOF" >> $GITHUB_OUTPUT
-          echo "$MESSAGE" >> $GITHUB_OUTPUT
+          cat message.txt >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
 
 

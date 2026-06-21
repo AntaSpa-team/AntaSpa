@@ -1,4 +1,4 @@
-name: AntaSpa - Registro de Actividad
+name: AntaSpa - Registro de Actividad Inteligente
 
 on:
   push:
@@ -18,35 +18,74 @@ jobs:
           fetch-depth: 0
 
 
-      - name: Obtener archivos modificados
-        id: changes
+      - name: Detectar archivos modificados
+        id: files
         run: |
-          FILES=$(git diff-tree --no-commit-id --name-only -r ${{ github.sha }})
+          if [ "${{ github.event_name }}" = "push" ]; then
+            FILES=$(git diff-tree --no-commit-id --name-only -r ${{ github.sha }})
+          else
+            FILES="No disponible para este evento"
+          fi
+
           echo "files<<EOF" >> $GITHUB_OUTPUT
           echo "$FILES" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
 
 
-      - name: Construir mensaje
+      - name: Construir mensaje inteligente
         id: msg
         run: |
-          echo "message<<EOF" >> $GITHUB_OUTPUT
-          echo "📌 REGISTRO DE ACTIVIDAD ANTA SPA
+          EVENT="${{ github.event_name }}"
+
+          if [ "$EVENT" = "push" ]; then
+            MESSAGE="📌 PUSH REGISTRADO
 
 👤 Responsable: ${{ github.actor }}
+📅 Fecha: $(date -u '+%Y-%m-%d %H:%M:%S UTC')
+🌿 Rama: ${{ github.ref_name }}
+📦 Repo: ${{ github.repository }}
+
+📝 Commit:
+${{ github.event.head_commit.message }}
+
+📄 Archivos:
+${{ steps.files.outputs.files }}
+
+🔗 Link:
+${{ github.event.head_commit.url }}"
+
+          elif [ "$EVENT" = "pull_request" ]; then
+            MESSAGE="📌 PULL REQUEST
+
+👤 Autor: ${{ github.actor }}
+📅 Fecha: $(date -u '+%Y-%m-%d %H:%M:%S UTC')
+🌿 Rama: ${{ github.head_ref }} → ${{ github.base_ref }}
+📦 Repo: ${{ github.repository }}
+
+📝 Título:
+${{ github.event.pull_request.title }}
+
+📄 Descripción:
+${{ github.event.pull_request.body }}
+
+🔗 PR:
+${{ github.event.pull_request.html_url }}"
+
+          else
+            MESSAGE="📌 EVENTO DETECTADO
+
+👤 Usuario: ${{ github.actor }}
 📅 Fecha: $(date -u '+%Y-%m-%d %H:%M:%S UTC')
 📌 Evento: ${{ github.event_name }}
 🌿 Rama: ${{ github.ref_name }}
 📦 Repo: ${{ github.repository }}
 
-📝 Mensaje:
-${{ github.event.head_commit.message }}
+🧠 Detalle:
+Evento de creación o acción sin commit directo"
+          fi
 
-📄 Archivos:
-${{ steps.changes.outputs.files }}
-
-🔗 Link:
-${{ github.event.head_commit.url }}" >> $GITHUB_OUTPUT
+          echo "message<<EOF" >> $GITHUB_OUTPUT
+          echo "$MESSAGE" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
 
 
@@ -55,4 +94,4 @@ ${{ github.event.head_commit.url }}" >> $GITHUB_OUTPUT
           curl -X POST \
           -H "Content-Type: application/json" \
           -d "{\"content\": \"${{ steps.msg.outputs.message }}\"}" \
-          "${{ secrets.DISCORD_WEBHOOK }}"
+          ${{ secrets.DISCORD_WEBHOOK }}

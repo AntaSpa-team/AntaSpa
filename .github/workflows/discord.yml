@@ -27,11 +27,32 @@ jobs:
           echo "EOF" >> $GITHUB_OUTPUT
 
 
-      - name: Enviar a Discord (FIX)
+      - name: Construir mensaje
+        id: msg
         run: |
-          MESSAGE="📌 REGISTRO DE ACTIVIDAD ANTA SPA\n\n👤 Responsable: ${{ github.actor }}\n📅 Fecha: $(date -u)\n📌 Evento: ${{ github.event_name }}\n🌿 Rama: ${{ github.ref_name }}\n📦 Repo: ${{ github.repository }}\n\n📝 Mensaje:\n${{ github.event.head_commit.message }}\n\n📄 Archivos:\n${{ steps.changes.outputs.files }}\n\n🔗 Link:\n${{ github.event.head_commit.url }}"
+          echo "message<<EOF" >> $GITHUB_OUTPUT
+          echo "📌 REGISTRO DE ACTIVIDAD ANTA SPA
 
-          curl -H "Content-Type: application/json" \
-          -X POST \
-          -d "{\"content\":\"$(echo "$MESSAGE" | sed 's/"/\\"/g')\"}" \
-          ${{ secrets.DISCORD_WEBHOOK }}
+👤 Responsable: ${{ github.actor }}
+📅 Fecha: $(date -u '+%Y-%m-%d %H:%M:%S UTC')
+📌 Evento: ${{ github.event_name }}
+🌿 Rama: ${{ github.ref_name }}
+📦 Repo: ${{ github.repository }}
+
+📝 Mensaje:
+${{ github.event.head_commit.message }}
+
+📄 Archivos:
+${{ steps.changes.outputs.files }}
+
+🔗 Link:
+${{ github.event.head_commit.url }}" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+
+      - name: Enviar a Discord (ESTABLE)
+        run: |
+          curl -X POST \
+          -H "Content-Type: application/json" \
+          -d "{\"content\": \"${{ steps.msg.outputs.message }}\"}" \
+          "${{ secrets.DISCORD_WEBHOOK }}"

@@ -46,7 +46,7 @@ jobs:
 📦 Repo: ${{ github.repository }}
 
 📝 Commit:
-${{ github.event.head_commit.message }}
+$(git log -1 --pretty=%B)
 
 📄 Archivos:
 ${{ steps.files.outputs.files }}
@@ -78,10 +78,8 @@ ${{ github.event.pull_request.html_url }}"
 📅 Fecha: $(date -u '+%Y-%m-%d %H:%M:%S UTC')
 📌 Evento: ${{ github.event_name }}
 🌿 Rama: ${{ github.ref_name }}
-📦 Repo: ${{ github.repository }}
+📦 Repo: ${{ github.repository }}"
 
-🧠 Detalle:
-Evento de creación o acción sin commit directo"
           fi
 
           echo "message<<EOF" >> $GITHUB_OUTPUT
@@ -89,7 +87,7 @@ Evento de creación o acción sin commit directo"
           echo "EOF" >> $GITHUB_OUTPUT
 
 
-      - name: Enviar a Discord (ESTABLE)
+      - name: Enviar a Discord
         run: |
           curl -X POST \
           -H "Content-Type: application/json" \

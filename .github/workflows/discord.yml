@@ -46,7 +46,7 @@ jobs:
 📦 Repo: ${{ github.repository }}
 
 📝 Commit:
-${{ github.event.head_commit.message }}
+${{ github.event.head_commit.message || join(github.event.commits.*.message, ', ') || github.event.pull_request.title || 'Sin mensaje' }}
 
 📄 Archivos:
 ${{ steps.files.outputs.files }}

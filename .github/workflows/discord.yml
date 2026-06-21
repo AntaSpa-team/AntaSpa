@@ -12,37 +12,96 @@ jobs:
 
     steps:
 
-      - name: Descargar repositorio
+      - name: Checkout repo
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
 
-      - name: Obtener archivos modificados
+      - name: Detectar archivos modificados
         id: changes
         run: |
-          FILES=$(git diff --name-only HEAD^ HEAD 2>/dev/null || echo "No disponible")
+          if [ "${{ github.event_name }}" = "push" ]; then
+            FILES=$(git diff --name-only ${{ github.event.before }} ${{ github.sha }} 2>/dev/null || echo "No disponible")
+          else
+            FILES="No disponible para este evento"
+          fi
 
           echo "files<<EOF" >> $GITHUB_OUTPUT
           echo "$FILES" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
 
 
-      - name: Enviar registro a Discord
+      - name: Construir mensaje
+        id: msg
+        run: |
+          EVENT="${{ github.event_name }}"
+          DATE=$(date -u '+%Y-%m-%d %H:%M:%S UTC')
+
+          if [ "$EVENT" = "push" ]; then
+            DETAIL=$(git log -1 --pretty=%B | head -c 300)
+
+            MESSAGE="📊 ANTASPA • ACTIVITY SYSTEM
+
+━━━━━━━━━━━━━━━━━━━━━━
+👤 Usuario: ${{ github.actor }}
+📅 Fecha: $DATE
+📦 Repo: ${{ github.repository }}
+🌿 Rama: ${{ github.ref_name }}
+━━━━━━━━━━━━━━━━━━━━━━
+🚀 EVENTO: PUSH
+
+🧠 Commit:
+$DETAIL
+
+📄 Archivos:
+${{ steps.changes.outputs.files }}
+
+━━━━━━━━━━━━━━━━━━━━━━
+🔗 Link: https://github.com/${{ github.repository }}/commit/${{ github.sha }}"
+
+          elif [ "$EVENT" = "pull_request" ]; then
+            MESSAGE="📊 ANTASPA • ACTIVITY SYSTEM
+
+━━━━━━━━━━━━━━━━━━━━━━
+👤 Usuario: ${{ github.actor }}
+📅 Fecha: $DATE
+📦 Repo: ${{ github.repository }}
+🌿 Rama: PR ${{ github.head_ref }} → ${{ github.base_ref }}
+━━━━━━━━━━━━━━━━━━━━━━
+🔀 EVENTO: PULL REQUEST
+
+📝 Título:
+${{ github.event.pull_request.title }}
+
+📄 Descripción:
+${{ github.event.pull_request.body }}
+
+━━━━━━━━━━━━━━━━━━━━━━
+🔗 PR: ${{ github.event.pull_request.html_url }}"
+
+          else
+            MESSAGE="📊 ANTASPA • ACTIVITY SYSTEM
+
+━━━━━━━━━━━━━━━━━━━━━━
+👤 Usuario: ${{ github.actor }}
+📅 Fecha: $DATE
+📦 Repo: ${{ github.repository }}
+🌿 Rama: ${{ github.ref_name }}
+━━━━━━━━━━━━━━━━━━━━━━
+📌 EVENTO: $EVENT
+
+🧠 Actividad registrada sin commit directo"
+          fi
+
+          echo "message<<EOF" >> $GITHUB_OUTPUT
+          echo "$MESSAGE" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+
+      - name: Enviar a Discord
         run: |
           curl -H "Content-Type: application/json" \
           -X POST \
-          -d "{\"content\":\"📊 **ANTASPA • ACTIVITY SYSTEM**\n\n\
-━━━━━━━━━━━━━━━━━━━━━━\n\
-👤 Usuario: ${{ github.actor }}\n\
-📅 Fecha: $(date -u '+%Y-%m-%d %H:%M:%S UTC')\n\
-📦 Repo: ${{ github.repository }}\n\
-🌿 Rama: ${{ github.ref_name }}\n\
-━━━━━━━━━━━━━━━━━━━━━━\n\
-🚀 Evento: ${{ github.event_name }}\n\n\
-🧠 Detalle:\n$(git log -1 --pretty=%B 2>/dev/null || echo 'Sin mensaje')\n\n\
-📄 Archivos:\n${{ steps.changes.outputs.files }}\n\n\
-━━━━━━━━━━━━━━━━━━━━━━\n\
-🔗 Link: ${{ github.event.head_commit.url || github.event.pull_request.html_url || 'No disponible' }}\n\
-\"}" \
+          -d "{\"content\":\"${{ steps.msg.outputs.message }}\"}" \
           ${{ secrets.DISCORD_WEBHOOK }}

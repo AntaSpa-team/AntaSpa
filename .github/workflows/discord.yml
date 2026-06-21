@@ -2,16 +2,13 @@ name: Notificar Discord
 
 on:
   push:
-    branches:
-      
-main
 
 jobs:
-  enviar-mensaje:
+  notify:
     runs-on: ubuntu-latest
 
     steps:
       
 name: Enviar mensaje a Discord
       run: |
-        curl -H "Content-Type: application/json" \-X POST \-d '{"content":"Se realizó un cambio en el proyecto"}' \${{ secrets.DISCORD_WEBHOOK }}
+        curl -H "Content-Type: application/json" \-X POST \-d "{"content":"🚀 ${{ github.actor }} realizó un push en la rama '${{ github.ref_name }}' del repositorio '${{ github.repository }}'."}" \${{ secrets.DISCORD_WEBHOOK }}

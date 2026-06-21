@@ -32,16 +32,16 @@ jobs:
           echo "EOF" >> $GITHUB_OUTPUT
 
 
-      - name: Construir mensaje
-        id: msg
+           - name: Enviar a Discord
         run: |
-          EVENT="${{ github.event_name }}"
-          DATE=$(date -u '+%Y-%m-%d %H:%M:%S UTC')
+          MESSAGE="${{ steps.msg.outputs.message }}"
 
-          if [ "$EVENT" = "push" ]; then
-            DETAIL=$(git log -1 --pretty=%B | head -c 300)
+          PAYLOAD=$(jq -n --arg content "$MESSAGE" '{content: $content}')
 
-            MESSAGE="📊 ANTASPA • ACTIVITY SYSTEM
+          curl -H "Content-Type: application/json" \
+          -X POST \
+          -d "$PAYLOAD" \
+          ${{ secrets.DISCORD_WEBHOOK }}
 
 ━━━━━━━━━━━━━━━━━━━━━━
 👤 Usuario: ${{ github.actor }}

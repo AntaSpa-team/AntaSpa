@@ -1,16 +1,38 @@
-name: Notificar Discord
+name: AntaSpa Bot Discord
 
 on:
   push:
+  pull_request:
+    types: [opened, closed]
+  create:
 
 jobs:
+
   notify:
+
     runs-on: ubuntu-latest
 
     steps:
-      - name: Enviar mensaje a Discord
+
+      - name: Descargar repositorio
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+
+      - name: Obtener archivos modificados
+        id: changes
         run: |
-          curl -H "Content-Type: application/json" \
+          echo "files<<EOF" >> $GITHUB_OUTPUT
+          git diff --name-only HEAD^ HEAD >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+
+      - name: Enviar registro a Discord
+        run: |
+
+          curl \
+          -H "Content-Type: application/json" \
           -X POST \
-          -d '{"content":"🚀 ${{ github.actor }} realizó un push en la rama ${{ github.ref_name }} del repositorio ${{ github.repository }}."}' \
+          -d "{\"content\":\"📌 **REGISTRO ANTA SPA**\n\n👤 Usuario: ${{ github.actor }}\n📅 Evento: ${{ github.event_name }}\n🌿 Rama: ${{ github.ref_name }}\n📦 Repositorio: ${{ github.repository }}\n\n📝 Commit:\n${{ github.event.head_commit.message }}\n\n📄 Archivos modificados:\n${{ steps.changes.outputs.files }}\n\n🔗 Commit:\n${{ github.event.head_commit.url }}\"}" \
           ${{ secrets.DISCORD_WEBHOOK }}

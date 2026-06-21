@@ -7,9 +7,7 @@ on:
   create:
 
 jobs:
-
   notify:
-
     runs-on: ubuntu-latest
 
     steps:
@@ -17,22 +15,34 @@ jobs:
       - name: Descargar repositorio
         uses: actions/checkout@v4
         with:
-          fetch-depth: 2
+          fetch-depth: 0
 
 
       - name: Obtener archivos modificados
         id: changes
         run: |
+          FILES=$(git diff --name-only HEAD^ HEAD 2>/dev/null || echo "No disponible")
+
           echo "files<<EOF" >> $GITHUB_OUTPUT
-          git diff --name-only HEAD^ HEAD >> $GITHUB_OUTPUT
+          echo "$FILES" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
 
 
       - name: Enviar registro a Discord
         run: |
-
-          curl \
-          -H "Content-Type: application/json" \
+          curl -H "Content-Type: application/json" \
           -X POST \
-          -d "{\"content\":\"📌 **REGISTRO ANTA SPA**\n\n👤 Usuario: ${{ github.actor }}\n📅 Evento: ${{ github.event_name }}\n🌿 Rama: ${{ github.ref_name }}\n📦 Repositorio: ${{ github.repository }}\n\n📝 Commit:\n${{ github.event.head_commit.message }}\n\n📄 Archivos modificados:\n${{ steps.changes.outputs.files }}\n\n🔗 Commit:\n${{ github.event.head_commit.url }}\"}" \
+          -d "{\"content\":\"📊 **ANTASPA • ACTIVITY SYSTEM**\n\n\
+━━━━━━━━━━━━━━━━━━━━━━\n\
+👤 Usuario: ${{ github.actor }}\n\
+📅 Fecha: $(date -u '+%Y-%m-%d %H:%M:%S UTC')\n\
+📦 Repo: ${{ github.repository }}\n\
+🌿 Rama: ${{ github.ref_name }}\n\
+━━━━━━━━━━━━━━━━━━━━━━\n\
+🚀 Evento: ${{ github.event_name }}\n\n\
+🧠 Detalle:\n$(git log -1 --pretty=%B 2>/dev/null || echo 'Sin mensaje')\n\n\
+📄 Archivos:\n${{ steps.changes.outputs.files }}\n\n\
+━━━━━━━━━━━━━━━━━━━━━━\n\
+🔗 Link: ${{ github.event.head_commit.url || github.event.pull_request.html_url || 'No disponible' }}\n\
+\"}" \
           ${{ secrets.DISCORD_WEBHOOK }}

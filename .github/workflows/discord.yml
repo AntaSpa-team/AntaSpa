@@ -1,4 +1,4 @@
-name: AntaSpa - Registro de Actividad
+name: AntaSpa Bot Discord
 
 on:
   push:
@@ -7,7 +7,9 @@ on:
   create:
 
 jobs:
+
   notify:
+
     runs-on: ubuntu-latest
 
     steps:
@@ -26,20 +28,11 @@ jobs:
           echo "EOF" >> $GITHUB_OUTPUT
 
 
-      - name: Enviar registro completo a Discord
+      - name: Enviar registro a Discord
         run: |
 
           curl \
           -H "Content-Type: application/json" \
           -X POST \
-          -d "{\"content\":\"📌 **REGISTRO DE ACTIVIDAD ANTA SPA**\n\n\
-👤 Responsable: ${{ github.actor }}\n\
-📅 Fecha: $(date -u '+%Y-%m-%d %H:%M:%S UTC')\n\
-📌 Evento: ${{ github.event_name }}\n\
-🌿 Rama: ${{ github.ref_name }}\n\
-📦 Repositorio: ${{ github.repository }}\n\n\
-📝 Mensaje:\n${{ github.event.head_commit.message }}\n\n\
-📄 Archivos afectados:\n${{ steps.changes.outputs.files }}\n\n\
-🔗 Link commit/acción:\n${{ github.event.head_commit.url }}\n\n\
-📊 Tipo de cambio: seguimiento automático de proyecto UX/UI Figma\"}" \
+          -d "{\"content\":\"📌 **REGISTRO ANTA SPA**\n\n👤 Usuario: ${{ github.actor }}\n📅 Evento: ${{ github.event_name }}\n🌿 Rama: ${{ github.ref_name }}\n📦 Repositorio: ${{ github.repository }}\n\n📝 Commit:\n${{ github.event.head_commit.message }}\n\n📄 Archivos modificados:\n${{ steps.changes.outputs.files }}\n\n🔗 Commit:\n${{ github.event.head_commit.url }}\"}" \
           ${{ secrets.DISCORD_WEBHOOK }}

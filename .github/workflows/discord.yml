@@ -12,24 +12,34 @@ jobs:
 
     steps:
 
-      - name: Checkout
+      - name: Descargar repositorio
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0
+          fetch-depth: 2
 
 
       - name: Obtener archivos modificados
         id: changes
         run: |
-          FILES=$(git diff-tree --no-commit-id --name-only -r ${{ github.sha }})
           echo "files<<EOF" >> $GITHUB_OUTPUT
-          echo "$FILES" >> $GITHUB_OUTPUT
+          git diff --name-only HEAD^ HEAD >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
 
 
-      - name: Enviar a Discord
+      - name: Enviar registro completo a Discord
         run: |
-          curl -H "Content-Type: application/json" \
+
+          curl \
+          -H "Content-Type: application/json" \
           -X POST \
-          -d "{\"content\":\"📌 **REGISTRO ANTA SPA**\n\n👤 Usuario: ${{ github.actor }}\n📅 Fecha: $(date -u)\n📌 Evento: ${{ github.event_name }}\n🌿 Rama: ${{ github.ref_name }}\n📦 Repo: ${{ github.repository }}\n\n📝 Commit: ${{ github.event.head_commit.message }}\n\n📄 Archivos:\n${{ steps.changes.outputs.files }}\n\n🔗 Link: ${{ github.event.head_commit.url }}\"}" \
-          ${{ secrets.DISCORD_WEBHOOK }}
+          -d "{\"content\":\"📌 **REGISTRO DE ACTIVIDAD ANTA SPA**\n\n\
+👤 Responsable: ${{ github.actor }}\n\
+📅 Fecha: $(date -u '+%Y-%m-%d %H:%M:%S UTC')\n\
+📌 Evento: ${{ github.event_name }}\n\
+🌿 Rama: ${{ github.ref_name }}\n\
+📦 Repositorio: ${{ github.repository }}\n\n\
+📝 Mensaje:\n${{ github.event.head_commit.message }}\n\n\
+📄 Archivos afectados:\n${{ steps.changes.outputs.files }}\n\n\
+🔗 Link commit/acción:\n${{ github.event.head_commit.url }}\n\n\
+📊 Tipo de cambio: seguimiento automático de proyecto UX/UI Figma\"}" \
+          ${{ secrets.DISCORD_WEBHOOK }} no fuinciona, hice push y nada q notifica
